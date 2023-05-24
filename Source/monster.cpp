@@ -830,7 +830,7 @@ void DiabloDeath(Monster &diablo, bool sendmsg)
 	if (sendmsg)
 		NetSendCmdQuest(true, quest);
 	sgbSaveSoundOn = gbSoundOn;
-	gbProcessPlayers = false;
+	gbProcessPlayers = !*sgOptions.Gameplay.quitAfterDiablo;
 	for (size_t i = 0; i < ActiveMonsterCount; i++) {
 		int monsterId = ActiveMonsters[i];
 		Monster &monster = Monsters[monsterId];
@@ -1476,18 +1476,19 @@ void MonsterDeath(Monster &monster)
 {
 	monster.var1++;
 	if (monster.type().type == MT_DIABLO) {
-		if (monster.position.tile.x < ViewPosition.x) {
-			ViewPosition.x--;
-		} else if (monster.position.tile.x > ViewPosition.x) {
-			ViewPosition.x++;
-		}
+		if (*sgOptions.Gameplay.quitAfterDiablo) {
+			if (monster.position.tile.x < ViewPosition.x) {
+				ViewPosition.x--;
+			} else if (monster.position.tile.x > ViewPosition.x) {
+				ViewPosition.x++;
+			}
 
-		if (monster.position.tile.y < ViewPosition.y) {
-			ViewPosition.y--;
-		} else if (monster.position.tile.y > ViewPosition.y) {
-			ViewPosition.y++;
+			if (monster.position.tile.y < ViewPosition.y) {
+				ViewPosition.y--;
+			} else if (monster.position.tile.y > ViewPosition.y) {
+				ViewPosition.y++;
+			}
 		}
-
 		if (monster.var1 == 140)
 			PrepDoEnding();
 	} else if (monster.animInfo.isLastFrame()) {
@@ -3787,7 +3788,7 @@ void DoEnding()
 void PrepDoEnding()
 {
 	gbSoundOn = sgbSaveSoundOn;
-	gbRunGame = false;
+	gbRunGame = !*sgOptions.Gameplay.quitAfterDiablo;
 	MyPlayerIsDead = false;
 	cineflag = true;
 
@@ -3795,14 +3796,16 @@ void PrepDoEnding()
 
 	myPlayer.pDiabloKillLevel = std::max(myPlayer.pDiabloKillLevel, static_cast<uint8_t>(sgGameInitInfo.nDifficulty + 1));
 
-	for (Player &player : Players) {
-		player._pmode = PM_QUIT;
-		player._pInvincible = true;
-		if (gbIsMultiplayer) {
-			if (player._pHitPoints >> 6 == 0)
-				player._pHitPoints = 64;
-			if (player._pMana >> 6 == 0)
-				player._pMana = 64;
+	if (*sgOptions.Gameplay.quitAfterDiablo) {
+		for (Player &player : Players) {
+			player._pmode = PM_QUIT;
+			player._pInvincible = true;
+			if (gbIsMultiplayer) {
+				if (player._pHitPoints >> 6 == 0)
+					player._pHitPoints = 64;
+				if (player._pMana >> 6 == 0)
+					player._pMana = 64;
+			}
 		}
 	}
 }

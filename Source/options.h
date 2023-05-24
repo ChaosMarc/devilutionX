@@ -534,6 +534,8 @@ struct GameplayOptions : OptionCategoryBase {
 	OptionEntryBoolean runInTown;
 	/** @brief Do not let the mouse leave the application window. */
 	OptionEntryBoolean grabInput;
+	/** @brief Automatically leave the game after killing Diablo. */
+	OptionEntryBoolean quitAfterDiablo;
 	/** @brief Enable the Theo quest. */
 	OptionEntryBoolean theoQuest;
 	/** @brief Enable the cow quest. */
