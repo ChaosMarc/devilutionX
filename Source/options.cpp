@@ -1021,6 +1021,9 @@ std::vector<OptionEntryBase *> GraphicsOptions::GetEntries()
 #if !defined(USE_SDL1) || defined(__3DS__)
 		&fitToScreen,
 #endif
+                &showItemGraphicsInStores,
+		&showHealthValues,
+		&showManaValues,
 #ifndef USE_SDL1
 		&upscale,
 		&scaleQuality,
