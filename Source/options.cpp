@@ -1031,9 +1031,6 @@ std::vector<OptionEntryBase *> GraphicsOptions::GetEntries()
 		&zoom,
 		&limitFPS,
 		&showFPS,
-		&showItemGraphicsInStores,
-		&showHealthValues,
-		&showManaValues,
 		&colorCycling,
 		&alternateNestArt,
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -1050,7 +1047,6 @@ GameplayOptions::GameplayOptions()
     , tickRate("Speed", OptionEntryFlags::Invisible, "Speed", "Gameplay ticks per second.", 20)
     , runInTown("Run in Town", OptionEntryFlags::CantChangeInMultiPlayer, N_("Run in Town"), N_("Enable jogging/fast walking in town for Diablo and Hellfire. This option was introduced in the expansion."), false)
     , grabInput("Grab Input", OptionEntryFlags::None, N_("Grab Input"), N_("When enabled mouse is locked to the game window."), false)
-    , quitAfterDiablo("Quit after killing Diablo", OptionEntryFlags::None, N_("Quit after killing Diablo"), N_("Automatically leave the game after killing Diablo."), true)
     , theoQuest("Theo Quest", OptionEntryFlags::CantChangeInGame | OptionEntryFlags::OnlyHellfire, N_("Theo Quest"), N_("Enable Little Girl quest."), false)
     , cowQuest("Cow Quest", OptionEntryFlags::CantChangeInGame | OptionEntryFlags::OnlyHellfire, N_("Cow Quest"), N_("Enable Jersey's quest. Lester the farmer is replaced by the Complete Nut."), false)
     , friendlyFire("Friendly Fire", OptionEntryFlags::CantChangeInMultiPlayer, N_("Friendly Fire"), N_("Allow arrow/spell damage between players in multiplayer even when the friendly mode is on."), true)
@@ -1081,6 +1077,7 @@ GameplayOptions::GameplayOptions()
     , numFullManaPotionPickup("Full Mana Potion Pickup", OptionEntryFlags::None, N_("Full Mana Potion Pickup"), N_("Number of Full Mana potions to pick up automatically."), 0, { 0, 1, 2, 4, 8, 16 })
     , numRejuPotionPickup("Rejuvenation Potion Pickup", OptionEntryFlags::None, N_("Rejuvenation Potion Pickup"), N_("Number of Rejuvenation potions to pick up automatically."), 0, { 0, 1, 2, 4, 8, 16 })
     , numFullRejuPotionPickup("Full Rejuvenation Potion Pickup", OptionEntryFlags::None, N_("Full Rejuvenation Potion Pickup"), N_("Number of Full Rejuvenation potions to pick up automatically."), 0, { 0, 1, 2, 4, 8, 16 })
+    , quitAfterDiablo("Quit after killing Diablo", OptionEntryFlags::None, N_("Quit after killing Diablo"), N_("Automatically leave the game after killing Diablo."), true)
     , enableFloatingNumbers("Enable floating numbers", OptionEntryFlags::None, N_("Enable floating numbers"), N_("Enables floating numbers on gaining XP / dealing damage etc."), FloatingNumbers::Off,
           {
               { FloatingNumbers::Off, N_("Off") },
@@ -1096,40 +1093,40 @@ std::vector<OptionEntryBase *> GameplayOptions::GetEntries()
 {
 	return {
 		&tickRate,
-		&grabInput,
-		&runInTown,
-		&quitAfterDiablo,
-		&adriaRefillsMana,
+		&friendlyFire,
+		&multiplayerFullQuests,
 		&randomizeQuests,
 		&theoQuest,
 		&cowQuest,
-		&friendlyFire,
-		&multiplayerFullQuests,
+		&runInTown,
+		&quickCast,
 		&testBard,
 		&testBarbarian,
 		&experienceBar,
 		&enemyHealthBar,
 		&showMonsterType,
 		&showItemLabels,
-		&disableCripplingShrines,
-		&quickCast,
+		&enableFloatingNumbers,
 		&autoRefillBelt,
-		&autoPickupInTown,
-		&autoGoldPickup,
-		&autoElixirPickup,
-		&autoOilPickup,
 		&autoEquipWeapons,
 		&autoEquipArmor,
 		&autoEquipHelms,
 		&autoEquipShields,
 		&autoEquipJewelry,
+		&autoGoldPickup,
+		&autoElixirPickup,
+		&autoOilPickup,
 		&numHealPotionPickup,
 		&numFullHealPotionPickup,
 		&numManaPotionPickup,
 		&numFullManaPotionPickup,
 		&numRejuPotionPickup,
 		&numFullRejuPotionPickup,
-		&enableFloatingNumbers,
+		&autoPickupInTown,
+		&disableCripplingShrines,
+		&adriaRefillsMana,
+		&grabInput,
+		&quitAfterDiablo,
 	};
 }
 
@@ -1465,20 +1462,33 @@ void KeymapperOptions::KeyPressed(uint32_t key) const
 	action.actionPressed();
 }
 
-void KeymapperOptions::KeyReleased(uint32_t key) const
+void KeymapperOptions::KeyReleased(SDL_Keycode key) const
 {
+	if (key >= SDLK_a && key <= SDLK_z) {
+		key = static_cast<SDL_Keycode>(static_cast<Sint32>(key) - ('a' - 'A'));
+	}
 	auto it = keyIDToAction.find(key);
 	if (it == keyIDToAction.end())
 		return; // Ignore unmapped keys.
 
 	const Action &action = it->second.get();
 
-	// Check that the action can be triggered and that the chat textbox is not
-	// open.
-	if (!action.actionReleased || (action.enable && !action.enable()) || talkflag)
+	// Check that the action can be triggered and that the chat or gold textbox is not
+	// open. If either of those textboxes are open, only return if the key can be used for entry into the box
+	if (!action.actionReleased || (action.enable && !action.enable()) || ((talkflag && IsTextEntryKey(key)) || (dropGoldFlag && IsNumberEntryKey(key))))
 		return;
 
 	action.actionReleased();
+}
+
+bool KeymapperOptions::IsTextEntryKey(SDL_Keycode vkey) const
+{
+	return IsAnyOf(vkey, SDLK_ESCAPE, SDLK_RETURN, SDLK_KP_ENTER, SDLK_BACKSPACE, SDLK_DOWN, SDLK_UP) || (vkey >= SDLK_SPACE && vkey <= SDLK_z);
+}
+
+bool KeymapperOptions::IsNumberEntryKey(SDL_Keycode vkey) const
+{
+	return ((vkey >= SDLK_0 && vkey <= SDLK_9) || vkey == SDLK_BACKSPACE);
 }
 
 string_view KeymapperOptions::KeyNameForAction(string_view actionName) const

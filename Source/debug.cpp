@@ -48,6 +48,12 @@ std::unordered_map<int, Point> DebugCoordsMap;
 bool DebugScrollViewEnabled = false;
 std::string debugTRN;
 
+// Used for debugging level generation
+uint32_t glMid1Seed[NUMLEVELS];
+uint32_t glMid2Seed[NUMLEVELS];
+uint32_t glMid3Seed[NUMLEVELS];
+uint32_t glEndSeed[NUMLEVELS];
+
 namespace {
 
 enum class DebugGridTextItem : uint16_t {
@@ -87,12 +93,6 @@ int DebugMonsterId;
 std::vector<std::string> SearchMonsters;
 std::vector<std::string> SearchItems;
 std::vector<std::string> SearchObjects;
-
-// Used for debugging level generation
-uint32_t glMid1Seed[NUMLEVELS];
-uint32_t glMid2Seed[NUMLEVELS];
-uint32_t glMid3Seed[NUMLEVELS];
-uint32_t glEndSeed[NUMLEVELS];
 
 void PrintDebugMonster(const Monster &monster)
 {
@@ -649,11 +649,6 @@ std::string DebugCmdShowGrid(const string_view parameter)
 	return "Back to boring.";
 }
 
-std::string DebugCmdLevelSeed(const string_view parameter)
-{
-	return StrCat("Seedinfo for level ", currlevel, "\nseed: ", glSeedTbl[currlevel], "\nMid1: ", glMid1Seed[currlevel], "\nMid2: ", glMid2Seed[currlevel], "\nMid3: ", glMid3Seed[currlevel], "\nEnd: ", glEndSeed[currlevel]);
-}
-
 std::string DebugCmdSpawnUniqueMonster(const string_view parameter)
 {
 	if (leveltype == DTYPE_TOWN)
@@ -1070,7 +1065,6 @@ std::vector<DebugCmdItem> DebugCmdList = {
 	{ "exit", "Exits the game.", "", &DebugCmdExit },
 	{ "arrow", "Changes arrow effect (normal, fire, lightning, explosion).", "{effect}", &DebugCmdArrow },
 	{ "grid", "Toggles showing grid.", "", &DebugCmdShowGrid },
-	{ "seedinfo", "Show seed infos for current level.", "", &DebugCmdLevelSeed },
 	{ "spawnu", "Spawns unique monster {name}.", "{name} ({count})", &DebugCmdSpawnUniqueMonster },
 	{ "spawn", "Spawns monster {name}.", "{name} ({count})", &DebugCmdSpawnMonster },
 	{ "tiledata", "Toggles showing tile data {name} (leave name empty to see a list).", "{name}", &DebugCmdShowTileData },

@@ -46,7 +46,7 @@
 namespace devilution {
 
 OptionalOwnedClxSpriteList ArtLogo;
-std::array<OptionalOwnedClxSpriteList, 2> DifficultyIndicator;
+OptionalOwnedClxSpriteList DifficultyIndicator;
 
 std::array<OptionalOwnedClxSpriteList, 3> ArtFocus;
 
@@ -463,11 +463,6 @@ void UiHandleEvents(SDL_Event *event)
 		return;
 	}
 
-	if (event->type == SDL_KEYUP && event->key.keysym.sym == SDLK_PRINTSCREEN) {
-		PrintScreen(SDLK_PRINTSCREEN);
-		return;
-	}
-
 	if (event->type == SDL_KEYDOWN && event->key.keysym.sym == SDLK_RETURN) {
 		const Uint8 *state = SDLC_GetKeyState();
 		if (state[SDLC_KEYSTATE_LALT] != 0 || state[SDLC_KEYSTATE_RALT] != 0) {
@@ -593,8 +588,7 @@ void LoadUiGFX()
 	} else {
 		ArtLogo = LoadPcxSpriteList("ui_art\\smlogo", /*numFrames=*/15, /*transparentColor=*/250);
 	}
-	DifficultyIndicator[0] = LoadPcx("ui_art\\radio1", /*transparentColor=*/0);
-	DifficultyIndicator[1] = LoadPcx("ui_art\\radio3", /*transparentColor=*/0);
+	DifficultyIndicator = LoadPcx("ui_art\\r1_gry", /*transparentColor=*/0);
 	ArtFocus[FOCUS_SMALL] = LoadPcxSpriteList("ui_art\\focus16", /*numFrames=*/8, /*transparentColor=*/250);
 	ArtFocus[FOCUS_MED] = LoadPcxSpriteList("ui_art\\focus", /*numFrames=*/8, /*transparentColor=*/250);
 	ArtFocus[FOCUS_BIG] = LoadPcxSpriteList("ui_art\\focus42", /*numFrames=*/8, /*transparentColor=*/250);
@@ -622,8 +616,7 @@ void UnloadUiGFX()
 	for (auto &art : ArtFocus)
 		art = std::nullopt;
 	ArtLogo = std::nullopt;
-	for (auto &diffInd : DifficultyIndicator)
-		diffInd = std::nullopt;
+	DifficultyIndicator = std::nullopt;
 }
 
 void UiInitialize()

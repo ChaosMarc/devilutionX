@@ -227,7 +227,7 @@ void LeftMouseCmd(bool bShift)
 
 	if (leveltype == DTYPE_TOWN) {
 		CloseGoldWithdraw();
-		IsStashOpen = false;
+		CloseStash();
 		if (pcursitem != -1 && pcurs == CURSOR_HAND)
 			NetSendCmdLocParam1(true, invflag ? CMD_GOTOGETITEM : CMD_GOTOAGETITEM, cursPosition, pcursitem);
 		if (pcursmonst != -1)
@@ -440,7 +440,7 @@ void RightMouseDown(bool isShiftHeld)
 void ReleaseKey(SDL_Keycode vkey)
 {
 	remap_keyboard_key(&vkey);
-	if ((sgnTimeoutCurs != CURSOR_NONE || dropGoldFlag) && vkey != SDLK_PRINTSCREEN)
+	if (sgnTimeoutCurs != CURSOR_NONE)
 		return;
 	sgOptions.Keymapper.KeyReleased(vkey);
 }
@@ -660,7 +660,7 @@ void HandleMouseButtonUp(Uint8 button, uint16_t modState)
 		LastMouseButtonAction = MouseActionType::None;
 		sgbMouseDown = CLICK_NONE;
 	} else {
-		sgOptions.Keymapper.KeyReleased(button | KeymapperMouseButtonMask);
+		sgOptions.Keymapper.KeyReleased(static_cast<SDL_Keycode>(button | KeymapperMouseButtonMask));
 	}
 }
 
@@ -1482,7 +1482,7 @@ void InventoryKeyPressed()
 	}
 	sbookflag = false;
 	CloseGoldWithdraw();
-	IsStashOpen = false;
+	CloseStash();
 }
 
 void CharacterSheetKeyPressed()
@@ -1525,7 +1525,7 @@ void QuestLogKeyPressed()
 	}
 	CloseCharPanel();
 	CloseGoldWithdraw();
-	IsStashOpen = false;
+	CloseStash();
 }
 
 void DisplaySpellsKeyPressed()
